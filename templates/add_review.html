@@ -1,10 +1,6 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Review {{ food_name }} | DishScout</title>
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
-</head>
-<body class="container">
+{% extends "base.html" %}
+
+{% block content %}
   <h2>Leave a Review for {{ food_name }}</h2>
 
   <form action="/add_review/{{ food_item_id }}" method="post">
@@ -22,6 +18,5 @@
 
     <button type="submit" class="btn btn-success">Submit Review</button>
   </form>
-</body>
-</html>
+{% endblock %}
 

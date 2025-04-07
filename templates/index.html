@@ -1,10 +1,6 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>DishScout | Home</title>
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
-</head>
-<body class="container">
+{% extends "base.html" %}
+
+{% block content %}
   <h2>DishScout Search</h2>
   <form action="/search" method="get">
     <div class="form-group">
@@ -17,8 +13,5 @@
     </div>
     <button type="submit" class="btn btn-primary">Search</button>
   </form>
-</body>
-</html>
-
-
+{% endblock %}
 

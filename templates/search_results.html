@@ -1,23 +1,19 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>DishScout | Search Results</title>
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
-</head>
-<body class="container">
+{% extends "base.html" %}
+
+{% block content %}
   <h2>Results for "{{ query }}"</h2>
 
   {% if search_type == "food" %}
-    <h3>Matching Food Items:</h3>
+    <h3>Food Items:</h3>
     <ul class="list-group">
       {% for item in results %}
         <li class="list-group-item">
-          <a href="/food_item/{{ item.food_item_id }}">{{ item.name }}</a> at <strong>{{ item.restaurant_name }}</strong>
+          <a href="/food_item/{{ item.food_item_id }}">{{ item.name }}</a> at {{ item.restaurant_name }}
         </li>
       {% endfor %}
     </ul>
   {% else %}
-    <h3>Matching Restaurants:</h3>
+    <h3>Restaurants:</h3>
     <ul class="list-group">
       {% for rest in results %}
         <li class="list-group-item">
@@ -26,6 +22,5 @@
       {% endfor %}
     </ul>
   {% endif %}
-</body>
-</html>
+{% endblock %}
 
