@@ -73,33 +73,51 @@ def index():
 
 @app.route('/search', methods=['POST'])
 def search():
-    food_name = request.form["query"]
-    get_food_item_query = f"""
-    WITH selected_food_item AS (
-    SELECT food_item_id
-    FROM rating
-    WHERE food_item_id IN (
-        SELECT food_item_id 
-        FROM food_item 
-        WHERE name ILIKE '%{food_name}%'
-    )
-    GROUP BY food_item_id
-    ORDER BY SUM(taste_rating + presentation_rating + price_rating + value_rating) DESC
-    LIMIT 1
-    )
-    SELECT food_item.food_item_id, food_item.name, rest.restaurant_id, rest.name, rest.location FROM restaurant rest
-    JOIN food_item ON rest.restaurant_id = food_item.restaurant_id
-    WHERE food_item.food_item_id = (SELECT food_item_id FROM selected_food_item);
-    """
-    
-    # get_food_item_query = "select * from food_item;"
-    cursor = g.conn.execute(text(get_food_item_query))
-    options = [row for row in cursor]
-    cursor.close()
+    query = request.form["query"]
+    search_type = request.form["search_type"]
 
-    context = dict(data = options)
-    print(context)
-    return render_template("search_results.html", query=food_name, results=context)
+    restaurants, food_items = {}, {}
+
+    if search_type == "food":
+        get_food_item_query = """
+        WITH matched_food AS (
+            SELECT fi.food_item_id, fi.name AS food_name, fi.restaurant_id
+            FROM food_item fi
+            WHERE fi.name ILIKE :pattern
+        ),
+        avg_ratings AS (
+            SELECT r.food_item_id,
+                   (AVG(r.taste_rating) + AVG(r.presentation_rating) + AVG(r.price_rating) + AVG(r.value_rating)) / 4 AS avg_rating
+            FROM rating r
+            GROUP BY r.food_item_id
+        )
+        SELECT mf.food_item_id, mf.food_name, r.restaurant_id, r.name AS restaurant_name, r.location, ar.avg_rating
+        FROM matched_food mf
+        JOIN avg_ratings ar ON mf.food_item_id = ar.food_item_id
+        JOIN restaurant r ON mf.restaurant_id = r.restaurant_id
+        ORDER BY ar.avg_rating DESC
+        LIMIT 5;
+        """
+
+        cursor = g.conn.execute(text(get_food_item_query), {"pattern": f"%{query}%"}).fetchall()
+        food_items['food_items'] = cursor
+
+        return render_template("search_results.html", query=query, results=food_items, search_type=search_type)
+
+    else:
+        get_restaurant_info_query = """
+        SELECT restaurant_id, name, location, rating
+        FROM restaurant
+        WHERE name ILIKE :pattern
+        ORDER BY rating DESC
+        LIMIT 5;
+        """
+
+        cursor = g.conn.execute(text(get_restaurant_info_query), {"pattern": f"%{query}%"}).fetchall()
+        restaurants['restaurants'] = cursor
+
+        return render_template("search_results.html", query=query, results=restaurants, search_type=search_type)
+
 
 
 @app.route('/food_item/<int:food_item_id>')
