@@ -1,11 +1,6 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>DishScout | Search Results</title>
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
-</head>
+{% extends "base.html" %}
+{% block content %}
 
-<body class="container">
   <h2>Results for "{{ query }}"</h2>
 
   {% if search_type == "food" %}
@@ -38,5 +33,5 @@
       <p>No restaurants matched your search.</p>
     {% endif %}
   {% endif %}
-</body>
-</html>
+
+{% endblock content%}

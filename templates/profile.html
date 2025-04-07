@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2>{{ name }}'s Profile</h2>
+<h3>Past Reviews</h3>
+
+<ul class="list-group">
+  {% for review in reviews %}
+    <li class="list-group-item">
+      <strong>{{ review[2] }}</strong><br>
+      Taste: {{ review[3] }} | Presentation: {{ review[4] }} | Price: {{ review[5] }} | Value: {{ review[6] }}<br>
+      Comment: {{ review[7] if review[7] else 'No comment provided.' }}
+
+      <div class="mt-3" style="margin-top:15px;">
+        <a href="/add_review/{{ review[1] }}" class="btn btn-sm btn-primary">Edit</a>
+        <form action="/delete_review/{{ review[0] }}" method="post" style="display:inline;">
+          <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+        </form>
+      </div>
+    </li>
+  {% else %}
+    <p>You haven't submitted any reviews yet.</p>
+  {% endfor %}
+</ul>
+
+{% endblock %}

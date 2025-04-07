@@ -1,20 +1,16 @@
 
-"""
-Columbia's COMS W4111.001 Introduction to Databases
-Example Webserver
-To run locally:
-    python server.py
-Go to http://localhost:8111 in your browser.
-A debugger such as "pdb" may be helpful for debugging.
-Read about it online.
-"""
+
 import os
 from sqlalchemy import *
 from sqlalchemy.pool import NullPool
 from flask import Flask, request, render_template, g, redirect, Response
 
+from flask import session
+from werkzeug.security import generate_password_hash, check_password_hash
+
 tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
 app = Flask(__name__, template_folder=tmpl_dir)
+app.secret_key = 'your_secret_key_here'  
 
 DATABASE_USERNAME = "ha2616"
 DATABASE_PASSWRD = "489057"
@@ -56,20 +52,6 @@ def teardown_request(exception):
 def index():
     return render_template("index.html")
 
-
-
-# Example of adding new data to the database
-# @app.route('/add', methods=['POST'])
-# def add():
-# 	# accessing form inputs from user
-# 	name = request.form['name']
-	
-# 	# passing params in for each variable into query
-# 	params = {}
-# 	params["new_name"] = name
-# 	g.conn.execute(text('INSERT INTO test(name) VALUES (:new_name)'), params)
-# 	g.conn.commit()
-# 	return redirect('/')
 
 @app.route('/search', methods=['POST'])
 def search():
@@ -122,22 +104,10 @@ def search():
 
 @app.route('/food_item/<int:food_item_id>')
 def food_item(food_item_id):
-    """
-    Food item name (2)
-    food category:
-    get category_ids for food items from has_category and map them to category names, then render the category name list here
-    restaurant name:
-    use the restaurant_id and search restaurant table to identify the restaurant name
-    average rating:
-    run a query to compute the average rating of that food_item and then render the output here
-    Add rating button 
-    ratings:
-    use the food_item_id to render all the ratings for that food item
-    """
+
     res = {}
 
     res["food_item_id"] = food_item_id
-    # 1. Get food item name + restaurant_id
     get_food_item_info_query = """
         SELECT name, restaurant_id 
         FROM food_item 
@@ -151,7 +121,6 @@ def food_item(food_item_id):
     res["food_item_name"] = food_item_info[0]
     restaurant_id = food_item_info[1]
 
-    # 2. Get category names for the food item
     get_category_query = """
         select category from categories where category_id in (
         SELECT category_id
@@ -162,7 +131,6 @@ def food_item(food_item_id):
     category_results = g.conn.execute(text(get_category_query), {"food_item_id": food_item_id})
     res["categories"] = [row[0] for row in category_results]
 
-    # 3. Get restaurant name
     get_restaurant_query = """
     SELECT restaurant_id, name, location
     FROM restaurant
@@ -177,7 +145,6 @@ def food_item(food_item_id):
     res["restaurant_name"] = restaurant_info[1]
     res["restaurant_location"] = restaurant_info[2]
 
-    # 4. Get average ratings
     get_four_average_ratings_query = """
         SELECT 
             AVG(taste_rating), 
@@ -190,71 +157,110 @@ def food_item(food_item_id):
     avg_ratings = g.conn.execute(text(get_four_average_ratings_query), {"food_item_id": food_item_id}).fetchone()
     res["average_ratings"] = avg_ratings  # tuple: (taste_avg, presentation_avg, price_avg, value_avg)
 
-    # 5. Get all ratings (tuples)
     get_ratings_query = """
-        SELECT user_id, taste_rating, presentation_rating,  price_rating, value_rating, comment    
-        FROM rating 
-        WHERE food_item_id = :food_item_id;
+        SELECT rating.user_id, users.name, rating.taste_rating, rating.presentation_rating,  rating.price_rating, rating.value_rating, rating.comment    
+        FROM rating NATURAL JOIN users
+        WHERE food_item_id = :food_item_id AND rating.user_id = users.user_id;
     """
     rating_results = g.conn.execute(text(get_ratings_query), {"food_item_id": food_item_id})
-    res["reviews"] = [row for row in rating_results]  # list of tuples
+    res["reviews"] = [row for row in rating_results] 
+
 
     print(res)
     return render_template("food_item.html", food=res)
 
+
 @app.route('/add_review/<int:food_item_id>', methods=['GET', 'POST'])
 def add_review(food_item_id):
+    user_id = session.get("user_id")
+    if not user_id:
+        return redirect("/login")
+
     res = {"food_item_id": food_item_id}
 
-    # 1. Get food item name + restaurant_id
+    # Get food item & restaurant info
     get_food_item_query = """
-    SELECT name, restaurant_id 
-    FROM food_item 
-    WHERE food_item_id = :food_item_id
+    SELECT name, restaurant_id FROM food_item WHERE food_item_id = :food_item_id
     """
     food_item_data = g.conn.execute(text(get_food_item_query), {"food_item_id": food_item_id}).fetchone()
     res["food_item_name"] = food_item_data[0]
     restaurant_id = food_item_data[1]
 
-    # 2. Get restaurant name
     get_restaurant_query = """
-    SELECT name 
-    FROM restaurant 
-    WHERE restaurant_id = :restaurant_id
+    SELECT name FROM restaurant WHERE restaurant_id = :restaurant_id
     """
     restaurant_name = g.conn.execute(text(get_restaurant_query), {"restaurant_id": restaurant_id}).scalar()
     res["restaurant_name"] = restaurant_name
 
-    # If POST, insert the review (optional to complete here)
+    # Check if user already left a review
+    get_existing_review_query = """
+    SELECT taste_rating, presentation_rating, price_rating, value_rating, comment
+    FROM rating
+    WHERE food_item_id = :food_item_id AND user_id = :user_id
+    """
+    existing_review = g.conn.execute(
+        text(get_existing_review_query),
+        {"food_item_id": food_item_id, "user_id": user_id}
+    ).fetchone()
+
     if request.method == "POST":
         taste = int(request.form["taste"])
         presentation = int(request.form["presentation"])
         price = int(request.form["price"])
         value = int(request.form["value"])
         comment = request.form.get("comment", "")
-        user_id = 1
 
-        insert_query = """
-        INSERT INTO rating (food_item_id, user_id, taste_rating, presentation_rating, price_rating, value_rating, comment)
-        VALUES (:food_item_id, :user_id, :taste_rating, :presentation_rating, :price_rating, :value_rating, :comment)
-        """
-        g.conn.execute(
-            text(insert_query),
-            {
+        if existing_review:
+            # UPDATE existing review
+            update_query = """
+            UPDATE rating
+            SET taste_rating = :taste, presentation_rating = :presentation,
+                price_rating = :price, value_rating = :value, comment = :comment
+            WHERE food_item_id = :food_item_id AND user_id = :user_id
+            """
+            g.conn.execute(text(update_query), {
+                "taste": taste,
+                "presentation": presentation,
+                "price": price,
+                "value": value,
+                "comment": comment,
+                "food_item_id": food_item_id,
+                "user_id": user_id
+            })
+        else:
+            # INSERT new review
+            insert_query = """
+            INSERT INTO rating (food_item_id, user_id, taste_rating, presentation_rating, price_rating, value_rating, comment)
+            VALUES (:food_item_id, :user_id, :taste, :presentation, :price, :value, :comment)
+            """
+            g.conn.execute(text(insert_query), {
                 "food_item_id": food_item_id,
                 "user_id": user_id,
-                "taste_rating": taste,
-                "presentation_rating": presentation,
-                "price_rating": price,
-                "value_rating": value,
+                "taste": taste,
+                "presentation": presentation,
+                "price": price,
+                "value": value,
                 "comment": comment
-            }
-        )
+            })
+
         g.conn.commit()
         return redirect(f"/food_item/{food_item_id}")
 
-    return render_template("add_review.html", food=res)
+    return render_template("add_review.html", food=res, existing=existing_review)
 
+@app.route('/delete_review/<int:rating_id>', methods=['POST'])
+def delete_review(rating_id):
+    user_id = session.get("user_id")
+    if not user_id:
+        return redirect('/login')
+
+    delete_query = """
+    DELETE FROM rating
+    WHERE rating_id = :rating_id;
+    """
+    g.conn.execute(text(delete_query), {"rating_id": rating_id})
+    g.conn.commit()
+    return redirect('/profile')
 
 @app.route('/restaurant/<int:restaurant_id>')
 def restaurant(restaurant_id):
@@ -288,6 +294,72 @@ def restaurant(restaurant_id):
 
     return render_template("restaurant.html", restaurant=restaurant, menu=menu)
 
+@app.route('/signup', methods=['GET', 'POST'])
+def signup():
+    if request.method == 'POST':
+        name = request.form['name']
+        email = request.form['email']
+        password = generate_password_hash(request.form['password'])
+        location = request.form['location']
+
+        check_user_query = "SELECT * FROM users WHERE email = :email"
+        existing_user = g.conn.execute(text(check_user_query), {"email": email}).fetchone()
+        if existing_user:
+            return "User already exists. Try logging in.", 400
+
+        insert_query = """
+        INSERT INTO users (name, email, password, location)
+        VALUES (:name, :email, :password, :location)
+        """
+        g.conn.execute(text(insert_query), {
+            "name": name,
+            "email": email,
+            "password": password,
+            "location": location
+        })
+        g.conn.commit()
+        return redirect('/login')
+
+    return render_template("signup.html")
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        email = request.form['email']
+        password = request.form['password']
+
+        get_user_query = "SELECT user_id, name, password FROM users WHERE email = :email"
+        user = g.conn.execute(text(get_user_query), {"email": email}).fetchone()
+
+        if user and check_password_hash(user[2], password):
+            session['user_id'] = user[0]
+            session['user_name'] = user[1]
+            return redirect('/')
+        else:
+            return "Invalid email or password", 401
+
+    return render_template("login.html")
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect('/')
+
+@app.route('/profile')
+def profile():
+    user_id = session.get("user_id")
+    if not user_id:
+        return redirect('/login')
+
+    get_ratings_query = """
+    SELECT rating_id, f.food_item_id, f.name, r.taste_rating, r.presentation_rating, r.price_rating, r.value_rating, r.comment
+    FROM rating r
+    JOIN food_item f ON r.food_item_id = f.food_item_id
+    WHERE r.user_id = :user_id
+    """
+    reviews = g.conn.execute(text(get_ratings_query), {"user_id": user_id}).fetchall()
+
+    return render_template("profile.html", name=session.get("user_name"), reviews=reviews)
 
 if __name__ == "__main__":
 	import click

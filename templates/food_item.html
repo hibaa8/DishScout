@@ -1,11 +1,6 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>{{ food.name }} | DishScout</title>
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
-</head>
-<body class="container">
-
+{% extends "base.html" %}
+ {% block content %}
+ 
   <h2>{{ food.food_item_name }}</h2>
   <p><strong>Restaurant:</strong>  <a href="/restaurant/{{ food.restaurant_id }}">{{ food.restaurant_name }} </a> at {{ food.restaurant_location }}</p>
   <p><strong>Categories:</strong> {{ food.categories | join(', ') }}</p>
@@ -19,36 +14,35 @@
   </ul>
 
   <h3>Reviews</h3>
-  <ul class="list-group">
-    {% for review in food.reviews %}
-      <li class="list-group-item">
-        User {{review[0]}}
-        Taste: {{ review[1] }}, Presentation: {{ review[2] }}, Price: {{ review[3] }}, Value: {{ review[4] }}
-        Comment: {{review[5]}}
-      </li>
-      {% else %}
-      <p>No reviews yet.</p>
-    {% endfor %}
-  </ul>
-  <a href="/add_review/{{ food.food_item_id }}" class="btn btn-primary">Leave a Review</a>
 
-  <!-- <hr>
-  <h3>Reviews:</h3>
-  {% for review in reviews %}
-    <div class="well">
-      <p>
-        <strong>Taste:</strong> {{ review.taste_rating }} |
-        <strong>Presentation:</strong> {{ review.presentation_rating }} |
-        <strong>Price:</strong> {{ review.price_rating }} |
-        <strong>Value:</strong> {{ review.value_rating }}
-      </p>
-      {% if review.comment %}
-        <p><em>{{ review.comment }}</em></p>
-      {% endif %}
-    </div>
+  {% if food.reviews %}
+    <ul class="list-group">
+      {% for review in food.reviews %}
+        <li class="list-group-item">
+          <h5>
+            <strong>{{ review[1] }}</strong> ({{ review[0] }})
+          </h5>
+          <p>
+            <strong>Ratings:</strong><br>
+            Taste: <span class="label label-success">{{ review[2] }}</span>
+            Presentation: <span class="label label-info">{{ review[3] }}</span>
+            Price: <span class="label label-warning">{{ review[4] }}</span>
+            Value: <span class="label label-primary">{{ review[5] }}</span>
+          </p>
+          {% if review[6] %}
+            <p><strong>Comment:</strong> {{ review[6] }}</p>
+          {% else %}
+            <p><em>No comment provided.</em></p>
+          {% endif %}
+        </li>
+      {% endfor %}
+    </ul>
   {% else %}
     <p>No reviews yet.</p>
-  {% endfor %} -->
-</body>
-</html>
+  {% endif %}
 
+  {% if session.get("user_id") %}
+    <a href="/add_review/{{ food.food_item_id }}" class="btn btn-primary">Leave a Review</a>
+  {% endif %}
+
+{% endblock content %}
