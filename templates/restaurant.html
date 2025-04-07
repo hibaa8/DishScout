@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>{{ restaurant.name }} | DishScout</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+</head>
+<body class="container">
+  <h2>{{ restaurant.name }}</h2>
+  <p><strong>Location:</strong> {{ restaurant.location }}</p>
+  <p><strong>Hours:</strong> {{ restaurant.hours }}</p>
+  <p><strong>Phone:</strong> {{ restaurant.phone_number }}</p>
+  <p><strong>Website:</strong> <a href="{{ restaurant.website }}" target="_blank">{{ restaurant.website }}</a></p>
+
+  <hr>
+  <h3>Menu:</h3>
+  <ul class="list-group">
+    {% for item in menu_items %}
+      <li class="list-group-item">
+        <a href="/food_item/{{ item.food_item_id }}">{{ item.name }}</a>
+      </li>
+    {% endfor %}
+  </ul>
+</body>
+</html>
+

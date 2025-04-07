@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>{{ food.name }} | DishScout</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+</head>
+<body class="container">
+  <h2>{{ food.name }}</h2>
+  <p><strong>Restaurant:</strong> <a href="/restaurant/{{ food.restaurant_id }}">{{ food.restaurant_name }}</a></p>
+  <p><strong>Nutritional Info:</strong> {{ food.nutritional_info }}</p>
+  <p><strong>Average Rating:</strong> {{ food.avg_rating }}</p>
+
+  <a href="/add_review/{{ food.food_item_id }}" class="btn btn-primary">Leave a Review</a>
+
+  <hr>
+  <h3>Reviews:</h3>
+  {% for review in reviews %}
+    <div class="well">
+      <p>
+        <strong>Taste:</strong> {{ review.taste_rating }} |
+        <strong>Presentation:</strong> {{ review.presentation_rating }} |
+        <strong>Price:</strong> {{ review.price_rating }} |
+        <strong>Value:</strong> {{ review.value_rating }}
+      </p>
+      {% if review.comment %}
+        <p><em>{{ review.comment }}</em></p>
+      {% endif %}
+    </div>
+  {% else %}
+    <p>No reviews yet.</p>
+  {% endfor %}
+</body>
+</html>
+
