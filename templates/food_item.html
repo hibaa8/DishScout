@@ -5,14 +5,34 @@
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
 </head>
 <body class="container">
-  <h2>{{ food.name }}</h2>
-  <p><strong>Restaurant:</strong> <a href="/restaurant/{{ food.restaurant_id }}">{{ food.restaurant_name }}</a></p>
-  <p><strong>Nutritional Info:</strong> {{ food.nutritional_info }}</p>
-  <p><strong>Average Rating:</strong> {{ food.avg_rating }}</p>
 
+  <h2>{{ food.food_item_name }}</h2>
+  <p><strong>Restaurant:</strong>  <a href="/restaurant/{{ food.restaurant_id }}">{{ food.restaurant_name }} </a> at {{ food.restaurant_location }}</p>
+  <p><strong>Categories:</strong> {{ food.categories | join(', ') }}</p>
+
+  <h3>Average Ratings</h3>
+  <ul>
+    <li>Taste: {{ "%.2f"|format(food.average_ratings[0]) if food.average_ratings[0] else "N/A" }}</li>
+    <li>Presentation: {{ "%.2f"|format(food.average_ratings[1]) if food.average_ratings[1] else "N/A" }}</li>
+    <li>Price: {{ "%.2f"|format(food.average_ratings[2]) if food.average_ratings[2] else "N/A" }}</li>
+    <li>Value: {{ "%.2f"|format(food.average_ratings[3]) if food.average_ratings[3] else "N/A" }}</li>
+  </ul>
+
+  <h3>Reviews</h3>
+  <ul class="list-group">
+    {% for review in food.reviews %}
+      <li class="list-group-item">
+        User {{review[0]}}
+        Taste: {{ review[1] }}, Presentation: {{ review[2] }}, Price: {{ review[3] }}, Value: {{ review[4] }}
+        Comment: {{review[5]}}
+      </li>
+      {% else %}
+      <p>No reviews yet.</p>
+    {% endfor %}
+  </ul>
   <a href="/add_review/{{ food.food_item_id }}" class="btn btn-primary">Leave a Review</a>
 
-  <hr>
+  <!-- <hr>
   <h3>Reviews:</h3>
   {% for review in reviews %}
     <div class="well">
@@ -28,7 +48,7 @@
     </div>
   {% else %}
     <p>No reviews yet.</p>
-  {% endfor %}
+  {% endfor %} -->
 </body>
 </html>
 
