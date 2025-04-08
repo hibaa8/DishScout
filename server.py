@@ -324,23 +324,6 @@ def signup():
 
     return render_template("signup.html")
 
-# @app.route('/login', methods=['GET', 'POST'])
-# def login():
-#     if request.method == 'POST':
-#         email = request.form['email']
-#         password = request.form['password']
-
-#         get_user_query = "SELECT user_id, name, password FROM users WHERE email = :email"
-#         user = g.conn.execute(text(get_user_query), {"email": email}).fetchone()
-
-#         if user and check_password_hash(user[2], password):
-#             session['user_id'] = user[0]
-#             session['user_name'] = user[1]
-#             return redirect('/')
-#         else:
-#             return "Invalid email or password", 401
-
-#     return render_template("login.html")
 
 from flask import flash  # make sure this is imported
 
@@ -393,33 +376,12 @@ def profile():
     return render_template("profile.html", name=session.get("user_name"), reviews=reviews, favorites=favorites)
 
 
-# @app.route('/favorite/<int:food_item_id>', methods=['POST'])
-# def favorite_food(food_item_id):
-#     user_id = session.get("user_id")
-#     if not user_id:
-#         return redirect("/login")
-
-#     insert_favorite = """
-#     INSERT INTO favorites (user_id, food_item_id, date_added)
-#     VALUES (:user_id, :food_item_id, :date_added)
-#     ON CONFLICT DO NOTHING;
-#     """
-#     g.conn.execute(text(insert_favorite), {
-#         "user_id": user_id,
-#         "food_item_id": food_item_id,
-#         "date_added": datetime.utcnow()
-#     })
-#     g.conn.commit()
-#     flash('Item added to favorites!')
-#     return redirect(f"/food_item/{food_item_id}")
-
 @app.route('/favorite/<int:food_item_id>', methods=['POST'])
 def favorite_food(food_item_id):
     user_id = session.get("user_id")
     if not user_id:
         return redirect("/login")
 
-    # Check if already favorited
     check_query = """
     SELECT 1 FROM favorites WHERE user_id = :user_id AND food_item_id = :food_item_id
     """
