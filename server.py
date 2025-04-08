@@ -324,6 +324,26 @@ def signup():
 
     return render_template("signup.html")
 
+# @app.route('/login', methods=['GET', 'POST'])
+# def login():
+#     if request.method == 'POST':
+#         email = request.form['email']
+#         password = request.form['password']
+
+#         get_user_query = "SELECT user_id, name, password FROM users WHERE email = :email"
+#         user = g.conn.execute(text(get_user_query), {"email": email}).fetchone()
+
+#         if user and check_password_hash(user[2], password):
+#             session['user_id'] = user[0]
+#             session['user_name'] = user[1]
+#             return redirect('/')
+#         else:
+#             return "Invalid email or password", 401
+
+#     return render_template("login.html")
+
+from flask import flash  # make sure this is imported
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -338,9 +358,10 @@ def login():
             session['user_name'] = user[1]
             return redirect('/')
         else:
-            return "Invalid email or password", 401
+            flash("Invalid email or password.")
 
     return render_template("login.html")
+
 
 @app.route('/logout')
 def logout():

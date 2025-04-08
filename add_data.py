@@ -189,8 +189,7 @@ def insert_restaurant_and_menu(url):
 # Test it
 if __name__ == "__main__":
     restaurants =["https://menupages.com/adyar-ananda-bhavan-indian-restaurant/1071-1st-ave-new-york",
-                  "https://menupages.com/afghan-kebab-house/1448-1st-ave-new-york",
-                  "https://menupages.com/ag-kitchen/269-columbus-ave-new-york"
+                  "https://menupages.com/afghan-kebab-house/1448-1st-ave-new-york"
                   ] 
     for restaurant in restaurants:
         print(insert_restaurant_and_menu(restaurant))
