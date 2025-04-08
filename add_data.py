@@ -10,10 +10,9 @@ import random
 
 load_dotenv()
 
-DATABASE_URL = "postgresql://ha2616:489057@34.148.223.31/proj1part2"
+DATABASE_URL = os.getenv("DATABASE_URL")
+GOOGLE_API_KEY = os.getenv("GOOGLE_PLACES_KEY")
 engine = create_engine(DATABASE_URL)
-
-GOOGLE_API_KEY ="AIzaSyCSY5_TUiAAwGAEhDW3bu_Y3hisQJvJu2A"
 
 class GooglePlacesAPIHandler:
     def __init__(self):
