@@ -7,6 +7,8 @@ from flask import Flask, request, render_template, g, redirect, Response
 
 from flask import session
 from werkzeug.security import generate_password_hash, check_password_hash
+from flask import session, flash
+from datetime import datetime
 
 tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
 app = Flask(__name__, template_folder=tmpl_dir)
@@ -75,7 +77,7 @@ def search():
         )
         SELECT mf.food_item_id, mf.food_name, r.restaurant_id, r.name AS restaurant_name, r.location, ar.avg_rating
         FROM matched_food mf
-        JOIN avg_ratings ar ON mf.food_item_id = ar.food_item_id
+        LEFT JOIN avg_ratings ar ON mf.food_item_id = ar.food_item_id
         JOIN restaurant r ON mf.restaurant_id = r.restaurant_id
         ORDER BY ar.avg_rating DESC
         LIMIT 5;
@@ -359,7 +361,87 @@ def profile():
     """
     reviews = g.conn.execute(text(get_ratings_query), {"user_id": user_id}).fetchall()
 
-    return render_template("profile.html", name=session.get("user_name"), reviews=reviews)
+    get_favorites_query = """
+    SELECT f.food_item_id, fi.name, f.date_added
+    FROM favorites f
+    JOIN food_item fi ON f.food_item_id = fi.food_item_id
+    WHERE f.user_id = :user_id
+    """
+    favorites = g.conn.execute(text(get_favorites_query), {"user_id": user_id}).fetchall()
+
+    return render_template("profile.html", name=session.get("user_name"), reviews=reviews, favorites=favorites)
+
+
+# @app.route('/favorite/<int:food_item_id>', methods=['POST'])
+# def favorite_food(food_item_id):
+#     user_id = session.get("user_id")
+#     if not user_id:
+#         return redirect("/login")
+
+#     insert_favorite = """
+#     INSERT INTO favorites (user_id, food_item_id, date_added)
+#     VALUES (:user_id, :food_item_id, :date_added)
+#     ON CONFLICT DO NOTHING;
+#     """
+#     g.conn.execute(text(insert_favorite), {
+#         "user_id": user_id,
+#         "food_item_id": food_item_id,
+#         "date_added": datetime.utcnow()
+#     })
+#     g.conn.commit()
+#     flash('Item added to favorites!')
+#     return redirect(f"/food_item/{food_item_id}")
+
+@app.route('/favorite/<int:food_item_id>', methods=['POST'])
+def favorite_food(food_item_id):
+    user_id = session.get("user_id")
+    if not user_id:
+        return redirect("/login")
+
+    # Check if already favorited
+    check_query = """
+    SELECT 1 FROM favorites WHERE user_id = :user_id AND food_item_id = :food_item_id
+    """
+    existing = g.conn.execute(text(check_query), {
+        "user_id": user_id,
+        "food_item_id": food_item_id
+    }).fetchone()
+
+    if existing:
+        flash("⚠️ This item is already in your favorites.")
+    else:
+        insert_favorite = """
+        INSERT INTO favorites (user_id, food_item_id, date_added)
+        VALUES (:user_id, :food_item_id, :date_added)
+        """
+        g.conn.execute(text(insert_favorite), {
+            "user_id": user_id,
+            "food_item_id": food_item_id,
+            "date_added": datetime.utcnow()
+        })
+        g.conn.commit()
+        flash("✅ Added to your favorites!")
+
+    return redirect(f"/food_item/{food_item_id}")
+
+
+@app.route('/delete_favorite/<int:food_item_id>', methods=['POST'])
+def delete_favorite(food_item_id):
+    user_id = session.get("user_id")
+    if not user_id:
+        return redirect("/login")
+
+    delete_query = """
+    DELETE FROM favorites WHERE user_id = :user_id AND food_item_id = :food_item_id
+    """
+    g.conn.execute(text(delete_query), {
+        "user_id": user_id,
+        "food_item_id": food_item_id
+    })
+    g.conn.commit()
+    flash("❌ Removed from your favorites.")
+    return redirect("/profile")
+
 
 if __name__ == "__main__":
 	import click

@@ -23,4 +23,20 @@
   {% endfor %}
 </ul>
 
+<h3>Favorites</h3>
+<ul class="list-group">
+  {% for fav in favorites %}
+    <li class="list-group-item d-flex justify-content-between align-items-center">
+      <div>
+        <a href="/food_item/{{ fav[0] }}">{{ fav[1] }}</a> – added on {{ fav[2].strftime("%Y-%m-%d") }}
+      </div>
+      <form action="/delete_favorite/{{ fav[0] }}" method="post" style="display:inline;">
+        <button type="submit" class="btn btn-sm btn-danger">Remove</button>
+      </form>
+    </li>
+  {% else %}
+    <p>You haven't favorited any items yet.</p>
+  {% endfor %}
+</ul>
+
 {% endblock %}

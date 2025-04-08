@@ -11,7 +11,11 @@
           <li class="list-group-item">
             <a href="/food_item/{{ item[0] }}">{{ item[1] }}</a> at 
             <a href="/restaurant/{{ item[2] }}">{{ item[3] }}</a> ({{ item[4] }}) — 
-            Avg Rating: {{ "%.2f"|format(item[5]) }}
+            {% if item[5] is not none %}
+              Avg Rating: {{ "%.2f"|format(item[5]) }}
+            {% else %}
+              Avg Rating: Not yet rated
+            {% endif %}
           </li>
         {% endfor %}
       </ul>

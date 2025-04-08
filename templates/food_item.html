@@ -1,6 +1,16 @@
 {% extends "base.html" %}
  {% block content %}
- 
+  <!-- Flash messages -->
+  {% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <div class="alert alert-info" style="margin-bottom: 20px;">
+      {% for message in messages %}
+        {{ message }}
+      {% endfor %}
+    </div>
+  {% endif %}
+  {% endwith %}
+
   <h2>{{ food.food_item_name }}</h2>
   <p><strong>Restaurant:</strong>  <a href="/restaurant/{{ food.restaurant_id }}">{{ food.restaurant_name }} </a> at {{ food.restaurant_location }}</p>
   <p><strong>Categories:</strong> {{ food.categories | join(', ') }}</p>
@@ -43,6 +53,16 @@
 
   {% if session.get("user_id") %}
     <a href="/add_review/{{ food.food_item_id }}" class="btn btn-primary">Leave a Review</a>
+  {% endif %}
+
+  <!-- {% if session.get("user_id") %}
+    <a href="/favorite/{{ food.food_item_id }}" class="btn btn-primary">Add to Favorites</a>
+  {% endif %} -->
+
+  {% if session.get("user_id") %}
+  <form method="post" action="/favorite/{{ food.food_item_id }}">
+    <button type="submit" class="btn btn-warning">Add to Favorites</button>
+  </form>
   {% endif %}
 
 {% endblock content %}
