@@ -9,16 +9,15 @@ from flask import session
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import session, flash
 from datetime import datetime
+from dotenv import load_dotenv
+
+load_dotenv()
 
 tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
 app = Flask(__name__, template_folder=tmpl_dir)
-app.secret_key = 'your_secret_key_here'  
+app.secret_key = os.getenv("SECRET_KEY")
 
-DATABASE_USERNAME = "ha2616"
-DATABASE_PASSWRD = "489057"
-DATABASE_HOST = "34.148.223.31"
-DATABASEURI = f"postgresql://{DATABASE_USERNAME}:{DATABASE_PASSWRD}@{DATABASE_HOST}/proj1part2"
-
+DATABASEURI = os.getenv("DATABASE_URL")
 engine = create_engine(DATABASEURI)
 
 
@@ -157,7 +156,7 @@ def food_item(food_item_id):
         WHERE food_item_id = :food_item_id;
     """
     avg_ratings = g.conn.execute(text(get_four_average_ratings_query), {"food_item_id": food_item_id}).fetchone()
-    res["average_ratings"] = avg_ratings  # tuple: (taste_avg, presentation_avg, price_avg, value_avg)
+    res["average_ratings"] = avg_ratings  
 
     get_ratings_query = """
         SELECT rating.user_id, users.name, rating.taste_rating, rating.presentation_rating,  rating.price_rating, rating.value_rating, rating.comment    
@@ -180,7 +179,6 @@ def add_review(food_item_id):
 
     res = {"food_item_id": food_item_id}
 
-    # Get food item & restaurant info
     get_food_item_query = """
     SELECT name, restaurant_id FROM food_item WHERE food_item_id = :food_item_id
     """
@@ -194,7 +192,6 @@ def add_review(food_item_id):
     restaurant_name = g.conn.execute(text(get_restaurant_query), {"restaurant_id": restaurant_id}).scalar()
     res["restaurant_name"] = restaurant_name
 
-    # Check if user already left a review
     get_existing_review_query = """
     SELECT taste_rating, presentation_rating, price_rating, value_rating, comment
     FROM rating
@@ -325,7 +322,7 @@ def signup():
     return render_template("signup.html")
 
 
-from flask import flash  # make sure this is imported
+from flask import flash 
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -403,7 +400,7 @@ def favorite_food(food_item_id):
             "date_added": datetime.utcnow()
         })
         g.conn.commit()
-        flash("✅ Added to your favorites!")
+        flash("Added to your favorites!")
 
     return redirect(f"/food_item/{food_item_id}")
 
@@ -422,7 +419,7 @@ def delete_favorite(food_item_id):
         "food_item_id": food_item_id
     })
     g.conn.commit()
-    flash("❌ Removed from your favorites.")
+    flash("Removed from your favorites.")
     return redirect("/profile")
 
 
