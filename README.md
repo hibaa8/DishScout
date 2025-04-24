@@ -51,9 +51,9 @@ SQLAlchemy is used for executing raw SQL queries and managing transactions.
 
 ## Data Sources
 
-- 🗺️ [Google Places API](https://developers.google.com/maps/documentation/places/web-service/overview) – For restaurant metadata
-- 🧾 [MenuPages](https://menupages.com/) – Scraped with `BeautifulSoup` to get food items
-- 📊 Random reviews generated for demonstration
+- [Google Places API](https://developers.google.com/maps/documentation/places/web-service/overview) – For restaurant metadata
+- [MenuPages](https://menupages.com/) – Scraped with `BeautifulSoup` to get food items
+- Random reviews generated for demonstration
 
 ---
 
