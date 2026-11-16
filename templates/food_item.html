@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+ {% block content %}
+  {% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <div class="alert alert-info" style="margin-bottom: 20px;">
+      {% for message in messages %}
+        {{ message }}
+      {% endfor %}
+    </div>
+  {% endif %}
+  {% endwith %}
+
+  <h2>{{ food.food_item_name }}</h2>
+  <p><strong>Restaurant:</strong>  <a href="/restaurant/{{ food.restaurant_id }}">{{ food.restaurant_name }} </a> at {{ food.restaurant_location }}</p>
+  <p><strong>Categories:</strong> {{ food.categories | join(', ') }}</p>
+
+  <h3>Average Ratings</h3>
+  <ul>
+    <li>Taste: {{ "%.2f"|format(food.average_ratings[0]) if food.average_ratings[0] else "N/A" }}</li>
+    <li>Presentation: {{ "%.2f"|format(food.average_ratings[1]) if food.average_ratings[1] else "N/A" }}</li>
+    <li>Price: {{ "%.2f"|format(food.average_ratings[2]) if food.average_ratings[2] else "N/A" }}</li>
+    <li>Value: {{ "%.2f"|format(food.average_ratings[3]) if food.average_ratings[3] else "N/A" }}</li>
+  </ul>
+
+  <h3>Reviews</h3>
+
+  {% if food.reviews %}
+    <ul class="list-group">
+      {% for review in food.reviews %}
+        <li class="list-group-item">
+          <h5>
+            <strong>{{ review[1] }}</strong> ({{ review[0] }})
+          </h5>
+          <p>
+            <strong>Ratings:</strong><br>
+            Taste: <span class="label label-success">{{ review[2] }}</span>
+            Presentation: <span class="label label-info">{{ review[3] }}</span>
+            Price: <span class="label label-warning">{{ review[4] }}</span>
+            Value: <span class="label label-primary">{{ review[5] }}</span>
+          </p>
+          {% if review[6] %}
+            <p><strong>Comment:</strong> {{ review[6] }}</p>
+          {% else %}
+            <p><em>No comment provided.</em></p>
+          {% endif %}
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>No reviews yet.</p>
+  {% endif %}
+
+  {% if session.get("user_id") %}
+    <a href="/add_review/{{ food.food_item_id }}" class="btn btn-primary">Leave a Review</a>
+  {% endif %}
+
+  <!-- {% if session.get("user_id") %}
+    <a href="/favorite/{{ food.food_item_id }}" class="btn btn-primary">Add to Favorites</a>
+  {% endif %} -->
+
+  {% if session.get("user_id") %}
+  <form method="post" action="/favorite/{{ food.food_item_id }}">
+    <button type="submit" class="btn btn-warning">Add to Favorites</button>
+  </form>
+  {% endif %}
+
+{% endblock content %}

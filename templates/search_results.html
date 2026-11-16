@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block content %}
+
+  <h2>Results for "{{ query }}"</h2>
+
+  {% if search_type == "food" %}
+    <h3>Top Matching Food Items</h3>
+    {% if results["food_items"] %}
+      <ul class="list-group">
+        {% for item in results["food_items"] %}
+          <li class="list-group-item">
+            <a href="/food_item/{{ item[0] }}">{{ item[1] }}</a> at 
+            <a href="/restaurant/{{ item[2] }}">{{ item[3] }}</a> ({{ item[4] }}) — 
+            {% if item[5] is not none %}
+              Avg Rating: {{ "%.2f"|format(item[5]) }}
+            {% else %}
+              Avg Rating: Not yet rated
+            {% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>No food items matched your search.</p>
+    {% endif %}
+
+  {% else %}
+    <h3>Top Matching Restaurants</h3>
+    {% if results["restaurants"] %}
+      <ul class="list-group">
+        {% for rest in results["restaurants"] %}
+          <li class="list-group-item">
+            <a href="/restaurant/{{ rest[0] }}">{{ rest[1] }}</a> – {{ rest[2] }} (Rating: {{ rest[3] }})
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>No restaurants matched your search.</p>
+    {% endif %}
+  {% endif %}
+
+{% endblock content%}
