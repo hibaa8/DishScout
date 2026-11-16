@@ -42,6 +42,3 @@ python server.py
 
 `DATABASE_URL` should be a SQLAlchemy PostgreSQL connection URL. `GOOGLE_PLACES_KEY` is needed only for the optional `add_data.py` import script, which also depends on MenuPages and a populated database.
 
-## Security note
-
-Do not commit real credentials. A Google Places key appeared in an earlier version of this repository; treat it as exposed and rotate or revoke it before using the Google Places integration.
