@@ -2,7 +2,7 @@
 
 DishScout is a Flask prototype for finding NYC restaurants by name or dish, reading dish reviews, and saving favorites. It combines a PostgreSQL data model with restaurant details from Google Places and menu items collected from MenuPages.
 
-> **Project status:** Portfolio prototype. The repository does not include the PostgreSQL schema, seed data, or a running database. The backend cannot be started from a fresh clone without those resources. The Python source passes syntax checks, but startup fails when `DATABASE_URL` is missing. Search, authentication, reviews, and favorites have not been verified against a live database.
+> **Project status:** The original Google Cloud backend is down. To run DishScout, set up your own PostgreSQL database and add your own restaurant and dish data.
 
 ## What it demonstrates
 
